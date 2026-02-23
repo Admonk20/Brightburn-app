@@ -8,7 +8,7 @@
     <meta name="description" content="Admin panel for BrightBurn Solutions heating and plumbing business.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <script type="module" crossorigin src="/assets/index-1btzLcxU.js"></script>
+  <script type="module" crossorigin src="/assets/index-COHW4V69.js"></script>
   <link rel="stylesheet" crossorigin href="/assets/index-C4fTC3Sl.css">
 </head>
 
@@ -118,40 +118,27 @@
                 </div>
             </div>
         </div>
-        <div class="dashboard-layout"
-            style="display: grid; grid-template-columns: 1fr 2fr; gap: 24px; margin-top: 24px;">
-            <!-- PIE CHART -->
-            <div class="card" style="padding: 20px; display: flex; flex-direction: column;">
-                <h3 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 24px;">Lead Status Breakdown</h3>
-                <div
-                    style="flex-grow: 1; display: flex; align-items: center; justify-content: center; position: relative;">
-                    <canvas id="leadsPieChart"></canvas>
-                </div>
+        <div class="card" style="margin-top: 24px;">
+            <div class="card-header">
+                <h2>Recent Leads</h2>
+                <button class="btn btn-ghost btn-icon" id="btnRefreshDash" title="Refresh Dashboard">🔄</button>
             </div>
-
-            <!-- RECENT LEADS -->
-            <div class="card">
-                <div class="card-header">
-                    <h2>Recent Leads</h2>
-                    <button class="btn btn-ghost btn-icon" id="btnRefreshDash" title="Refresh Dashboard">🔄</button>
-                </div>
-                <div class="table-wrap">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Name / ID</th>
-                                <th>Phone</th>
-                                <th>Service</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody id="leadsBody">
-                            <tr class="loading-row">
-                                <td colspan="4"><span class="spinner"></span> Loading leads...</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name / ID</th>
+                            <th>Phone</th>
+                            <th>Service</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leadsBody">
+                        <tr class="loading-row">
+                            <td colspan="4"><span class="spinner"></span> Loading leads...</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
     </section>

@@ -225,49 +225,6 @@ async function loadDashboard() {
         $('#statFollowups').textContent = followups;
         $('#statTopService').textContent = topService;
 
-        // ── Pie Chart Rendering ──
-        if (allConvos && allConvos.length > 0) {
-            const stateCounts = {};
-            allConvos.forEach(c => {
-                const state = c.current_state || 'unknown';
-                stateCounts[state] = (stateCounts[state] || 0) + 1;
-            });
-            const labels = Object.keys(stateCounts).map(s => s.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()));
-            const data = Object.values(stateCounts);
-
-            try {
-                const ctx = document.getElementById('leadsPieChart');
-                if (ctx) {
-                    if (leadsChart) leadsChart.destroy();
-                    leadsChart = new Chart(ctx, {
-                        type: 'pie',
-                        data: {
-                            labels,
-                            datasets: [{
-                                data,
-                                backgroundColor: [
-                                    '#ff6b35', '#f7931e', '#e53935', '#43a047', '#2196f3', '#9c27b0', '#607d8b'
-                                ],
-                                borderWidth: 1,
-                                borderColor: document.documentElement.getAttribute('data-theme') === 'dark' ? '#1c1f26' : '#ffffff'
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                                legend: { position: 'right', labels: { color: 'var(--text-secondary)' } }
-                            }
-                        }
-                    });
-                }
-            } catch (chartErr) {
-                console.error('Chart.js rendering failed:', chartErr);
-            }
-        } else {
-            if (leadsChart) { leadsChart.destroy(); leadsChart = null; }
-        }
-
     } catch (e) {
         console.error('Dashboard stats error:', e);
         $('#statConvos').textContent = '!';
@@ -275,7 +232,6 @@ async function loadDashboard() {
         $('#statWarm').textContent = '!';
         $('#statFollowups').textContent = '!';
         $('#statTopService').textContent = '!';
-        if (leadsChart) { leadsChart.destroy(); leadsChart = null; }
     }
 
     try {
