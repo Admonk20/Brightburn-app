@@ -1,0 +1,1683 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BrightBurn Solutions — Admin Panel</title>
+    <meta name="description"
+        content="Admin panel for BrightBurn Solutions heating and plumbing business. Manage services, FAQs, and business information.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* ===== RESET & BASE ===== */
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #ff6b35;
+            --secondary: #f7931e;
+            --bg: #f0f2f5;
+            --card: #ffffff;
+            --text: #1a1a2e;
+            --text-secondary: #555;
+            --text-muted: #888;
+            --border: #e0e0e0;
+            --hot: #e53935;
+            --warm: #f7931e;
+            --success: #43a047;
+            --error: #e53935;
+            --shadow: 0 2px 12px rgba(0, 0, 0, .08);
+            --shadow-lg: 0 8px 32px rgba(0, 0, 0, .12);
+            --radius: 12px;
+            --radius-sm: 6px;
+            --transition: .2s ease;
+            --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            font-family: var(--font);
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        button {
+            cursor: pointer;
+            font-family: var(--font);
+        }
+
+        input,
+        textarea,
+        select {
+            font-family: var(--font);
+        }
+
+        /* ===== HEADER ===== */
+        .header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: #fff;
+            padding: 20px 28px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 20px rgba(255, 107, 53, .3);
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 800;
+            letter-spacing: -.02em;
+        }
+
+        .header h1 span {
+            font-weight: 400;
+            opacity: .85;
+            font-size: .85em;
+        }
+
+        .conn-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: .82rem;
+            font-weight: 500;
+            background: rgba(255, 255, 255, .18);
+            padding: 6px 14px;
+            border-radius: 20px;
+            backdrop-filter: blur(4px);
+        }
+
+        .live-badge {
+            display: none;
+            align-items: center;
+            gap: 5px;
+            background: rgba(67, 160, 71, .2);
+            color: #69f0ae;
+            font-size: .72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            padding: 4px 10px;
+            border-radius: 20px;
+            margin-left: 6px;
+        }
+
+        .live-badge.on {
+            display: inline-flex;
+        }
+
+        .live-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #69f0ae;
+            animation: livePulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes livePulse {
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: .4;
+                transform: scale(.7);
+            }
+        }
+
+        @keyframes flashUpdate {
+            0% {
+                box-shadow: 0 0 0 0 rgba(255, 107, 53, .4);
+            }
+
+            50% {
+                box-shadow: 0 0 0 8px rgba(255, 107, 53, 0);
+            }
+
+            100% {
+                box-shadow: var(--shadow);
+            }
+        }
+
+        .stat-card.flash {
+            animation: flashUpdate .6s ease;
+        }
+
+        .conn-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: #aaa;
+            transition: background var(--transition);
+        }
+
+        .conn-dot.ok {
+            background: #69f0ae;
+            box-shadow: 0 0 6px #69f0ae;
+        }
+
+        .conn-dot.err {
+            background: var(--error);
+            box-shadow: 0 0 6px var(--error);
+        }
+
+        /* ===== NAV ===== */
+        .nav {
+            display: flex;
+            background: var(--card);
+            border-bottom: 1px solid var(--border);
+            padding: 0 16px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .nav button {
+            border: none;
+            background: none;
+            padding: 14px 22px;
+            font-size: .9rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            position: relative;
+            transition: color var(--transition);
+        }
+
+        .nav button:hover {
+            color: var(--primary);
+        }
+
+        .nav button.active {
+            color: var(--primary);
+        }
+
+        .nav button.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 16px;
+            right: 16px;
+            height: 3px;
+            background: var(--primary);
+            border-radius: 3px 3px 0 0;
+        }
+
+        /* ===== PAGES ===== */
+        .page {
+            display: none;
+            padding: 24px;
+            max-width: 1200px;
+            margin: 0 auto;
+            animation: fadeIn .3s ease;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: none;
+            }
+        }
+
+        /* ===== CARDS ===== */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+
+        .stat-card {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 22px;
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            transition: transform var(--transition), box-shadow var(--transition);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .stat-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .stat-icon.blue {
+            background: #e3f2fd;
+        }
+
+        .stat-icon.red {
+            background: #ffebee;
+        }
+
+        .stat-icon.orange {
+            background: #fff3e0;
+        }
+
+        .stat-icon.green {
+            background: #e8f5e9;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .stat-label {
+            font-size: .8rem;
+            color: var(--text-muted);
+            font-weight: 500;
+            margin-top: 4px;
+        }
+
+        /* ===== TABLE ===== */
+        .card {
+            background: var(--card);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 22px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .card-header h2 {
+            font-size: 1.05rem;
+            font-weight: 700;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+            padding: 12px 18px;
+            font-size: .75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            color: var(--text-muted);
+            background: #fafafa;
+            border-bottom: 1px solid var(--border);
+        }
+
+        td {
+            padding: 14px 18px;
+            font-size: .88rem;
+            border-bottom: 1px solid #f0f0f0;
+            vertical-align: middle;
+        }
+
+        tbody tr:hover {
+            background: #fdf5f0;
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* ===== BADGES ===== */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: .75rem;
+            font-weight: 600;
+        }
+
+        .badge.hot {
+            background: #ffebee;
+            color: var(--hot);
+        }
+
+        .badge.warm {
+            background: #fff3e0;
+            color: var(--warm);
+        }
+
+        .badge.complete {
+            background: #e8f5e9;
+            color: var(--success);
+        }
+
+        .badge.active-badge {
+            background: #e8f5e9;
+            color: var(--success);
+        }
+
+        .badge.inactive {
+            background: #f5f5f5;
+            color: #999;
+        }
+
+        /* ===== BUTTONS ===== */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 9px 18px;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: .85rem;
+            font-weight: 600;
+            transition: all var(--transition);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background: #e55a28;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(255, 107, 53, .3);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: #fff;
+        }
+
+        .btn-success:hover {
+            background: #388e3c;
+        }
+
+        .btn-danger {
+            background: transparent;
+            color: var(--error);
+            border: 1px solid var(--error);
+        }
+
+        .btn-danger:hover {
+            background: var(--error);
+            color: #fff;
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--text-secondary);
+        }
+
+        .btn-ghost:hover {
+            background: #f0f0f0;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: .8rem;
+        }
+
+        .btn-icon {
+            padding: 6px 10px;
+            font-size: 1rem;
+        }
+
+        /* ===== MODAL ===== */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .45);
+            backdrop-filter: blur(4px);
+            z-index: 200;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn .2s ease;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--card);
+            border-radius: var(--radius);
+            width: 90%;
+            max-width: 520px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-lg);
+            animation: modalIn .25s ease;
+        }
+
+        @keyframes modalIn {
+            from {
+                opacity: 0;
+                transform: scale(.95) translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: none;
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .modal-header h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            padding: 16px 24px;
+            border-top: 1px solid var(--border);
+        }
+
+        /* ===== FORM ===== */
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: .82rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: var(--text-secondary);
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: .9rem;
+            transition: border-color var(--transition), box-shadow var(--transition);
+            background: #fff;
+            color: var(--text);
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(255, 107, 53, .12);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary);
+        }
+
+        .checkbox-group label {
+            margin-bottom: 0;
+        }
+
+        /* ===== TOAST ===== */
+        .toast-container {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .toast {
+            padding: 14px 20px;
+            border-radius: var(--radius-sm);
+            color: #fff;
+            font-size: .88rem;
+            font-weight: 500;
+            box-shadow: var(--shadow-lg);
+            animation: toastIn .3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 280px;
+        }
+
+        .toast.success {
+            background: var(--success);
+        }
+
+        .toast.error {
+            background: var(--error);
+        }
+
+        @keyframes toastIn {
+            from {
+                opacity: 0;
+                transform: translateX(40px);
+            }
+
+            to {
+                opacity: 1;
+                transform: none;
+            }
+        }
+
+        @keyframes toastOut {
+            from {
+                opacity: 1;
+            }
+
+            to {
+                opacity: 0;
+                transform: translateX(40px);
+            }
+        }
+
+        /* ===== EMPTY / LOADING ===== */
+        .empty-state {
+            text-align: center;
+            padding: 48px 24px;
+            color: var(--text-muted);
+        }
+
+        .empty-state .icon {
+            font-size: 2.5rem;
+            margin-bottom: 12px;
+        }
+
+        .empty-state p {
+            font-size: .92rem;
+        }
+
+        .loading-row td {
+            text-align: center;
+            padding: 32px;
+            color: var(--text-muted);
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2.5px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin .6s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* ===== BUSINESS INFO FORM ===== */
+        .info-form {
+            background: var(--card);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 28px;
+        }
+
+        .info-form h2 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 24px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0 20px;
+        }
+
+        /* ===== ERROR BANNER ===== */
+        .error-banner {
+            background: #fff3e0;
+            border: 1px solid var(--secondary);
+            border-radius: var(--radius-sm);
+            padding: 14px 18px;
+            margin-bottom: 16px;
+            font-size: .88rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .header {
+                padding: 14px 16px;
+            }
+
+            .header h1 {
+                font-size: 1.15rem;
+            }
+
+            .header h1 span {
+                display: none;
+            }
+
+            .page {
+                padding: 16px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+            }
+
+            .stat-card {
+                padding: 16px;
+                gap: 12px;
+            }
+
+            .stat-icon {
+                width: 42px;
+                height: 42px;
+                font-size: 1.2rem;
+            }
+
+            .stat-value {
+                font-size: 1.4rem;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .card-header {
+                flex-direction: column;
+                gap: 10px;
+                align-items: flex-start;
+            }
+
+            .nav button {
+                padding: 12px 16px;
+                font-size: .82rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .conn-status span.lbl {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- HEADER -->
+    <header class="header">
+        <h1>🔥 BrightBurn Solutions <span>Admin Panel</span></h1>
+        <div class="conn-status" id="connStatus">
+            <div class="conn-dot" id="connDot"></div>
+            <span class="lbl" id="connLabel">Connecting…</span>
+            <span class="live-badge" id="liveBadge"><span class="live-dot"></span> Live</span>
+        </div>
+    </header>
+
+    <!-- NAVIGATION -->
+    <nav class="nav" id="mainNav">
+        <button class="active" data-page="dashboard">📊 Dashboard</button>
+        <button data-page="services">💷 Services &amp; Prices</button>
+        <button data-page="faqs">❓ FAQs</button>
+        <button data-page="business">🏢 Business Info</button>
+    </nav>
+
+    <!-- ======================= PAGES ======================= -->
+
+    <!-- DASHBOARD -->
+    <section class="page active" id="page-dashboard">
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card">
+                <div class="stat-icon blue">💬</div>
+                <div>
+                    <div class="stat-value" id="statConvos">—</div>
+                    <div class="stat-label">Today's Conversations</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon red">🔥</div>
+                <div>
+                    <div class="stat-value" id="statHot">—</div>
+                    <div class="stat-label">Hot Leads</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon orange">🌡️</div>
+                <div>
+                    <div class="stat-value" id="statWarm">—</div>
+                    <div class="stat-label">Warm Leads</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon green">📋</div>
+                <div>
+                    <div class="stat-value" id="statFollowups">—</div>
+                    <div class="stat-label">Pending Follow-ups</div>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header">
+                <h2>Recent Leads</h2>
+                <button class="btn btn-ghost btn-sm" id="btnRefreshDash">🔄 Refresh</button>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Phone</th>
+                            <th>Service</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leadsBody">
+                        <tr class="loading-row">
+                            <td colspan="4"><span class="spinner"></span> Loading…</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- SERVICES -->
+    <section class="page" id="page-services">
+        <div class="card">
+            <div class="card-header">
+                <h2>Services &amp; Pricing</h2>
+                <button class="btn btn-primary btn-sm" id="btnAddService">➕ Add Service</button>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Service</th>
+                            <th>Prebooked (£)</th>
+                            <th>Same-day (£)</th>
+                            <th>Weekend (£)</th>
+                            <th>Active</th>
+                            <th style="width:120px">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="servicesBody">
+                        <tr class="loading-row">
+                            <td colspan="6"><span class="spinner"></span> Loading…</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQs -->
+    <section class="page" id="page-faqs">
+        <div class="card">
+            <div class="card-header">
+                <h2>Frequently Asked Questions</h2>
+                <button class="btn btn-primary btn-sm" id="btnAddFaq">➕ Add FAQ</button>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Question</th>
+                            <th>Answer</th>
+                            <th>Active</th>
+                            <th style="width:120px">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="faqsBody">
+                        <tr class="loading-row">
+                            <td colspan="4"><span class="spinner"></span> Loading…</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- BUSINESS INFO -->
+    <section class="page" id="page-business">
+        <div class="info-form">
+            <h2>🏢 Business Information</h2>
+            <div id="bizError"></div>
+            <div class="info-grid" id="bizFormFields">
+                <div class="form-group">
+                    <label for="biz_company_name">Company Name</label>
+                    <input id="biz_company_name" data-key="company_name" placeholder="e.g. BrightBurn Solutions">
+                </div>
+                <div class="form-group">
+                    <label for="biz_owner_name">Owner Name</label>
+                    <input id="biz_owner_name" data-key="owner_name" placeholder="e.g. John Smith">
+                </div>
+                <div class="form-group">
+                    <label for="biz_phone">Phone</label>
+                    <input id="biz_phone" data-key="phone" placeholder="e.g. 07700 900000">
+                </div>
+                <div class="form-group">
+                    <label for="biz_whatsapp">WhatsApp</label>
+                    <input id="biz_whatsapp" data-key="whatsapp" placeholder="e.g. +447700900000">
+                </div>
+                <div class="form-group">
+                    <label for="biz_email">Email</label>
+                    <input id="biz_email" data-key="email" type="email" placeholder="e.g. info@brightburn.co.uk">
+                </div>
+                <div class="form-group">
+                    <label for="biz_gas_safe">Gas Safe Number</label>
+                    <input id="biz_gas_safe" data-key="gas_safe_number" placeholder="e.g. 123456">
+                </div>
+                <div class="form-group" style="grid-column: 1 / -1;">
+                    <label for="biz_areas">Areas Covered</label>
+                    <textarea id="biz_areas" data-key="areas_covered" rows="3"
+                        placeholder="e.g. Manchester, Salford, Bolton…"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="biz_hours">Business Hours</label>
+                    <input id="biz_hours" data-key="business_hours" placeholder="e.g. Mon-Fri 8am-6pm">
+                </div>
+                <div class="form-group">
+                    <label for="biz_review_link">Google Review Link</label>
+                    <input id="biz_review_link" data-key="google_review_link" placeholder="https://g.page/…">
+                </div>
+            </div>
+            <div style="margin-top: 8px;">
+                <button class="btn btn-primary" id="btnSaveBiz">💾 Save Changes</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- ======================= MODALS ======================= -->
+
+    <!-- SERVICE MODAL -->
+    <div class="modal-overlay" id="serviceModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="serviceModalTitle">Add Service</h3>
+                <button class="btn btn-icon btn-ghost" id="btnCloseServiceModal">✕</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="serviceId">
+                <div class="form-group">
+                    <label for="serviceName">Service Name</label>
+                    <input id="serviceName" placeholder="e.g. Boiler Repair">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="servicePrebooked">Prebooked (£)</label>
+                        <input id="servicePrebooked" type="number" min="0" placeholder="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="serviceSameday">Same-day (£)</label>
+                        <input id="serviceSameday" type="number" min="0" placeholder="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="serviceWeekend">Weekend (£)</label>
+                        <input id="serviceWeekend" type="number" min="0" placeholder="0">
+                    </div>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="serviceActive" checked>
+                    <label for="serviceActive">Active</label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" id="btnCancelService">Cancel</button>
+                <button class="btn btn-primary" id="btnSaveService">Save Service</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- FAQ MODAL -->
+    <div class="modal-overlay" id="faqModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="faqModalTitle">Add FAQ</h3>
+                <button class="btn btn-icon btn-ghost" id="btnCloseFaqModal">✕</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="faqId">
+                <div class="form-group">
+                    <label for="faqQuestion">Question</label>
+                    <input id="faqQuestion" placeholder="e.g. Do you offer emergency callouts?">
+                </div>
+                <div class="form-group">
+                    <label for="faqAnswer">Answer</label>
+                    <textarea id="faqAnswer" rows="4" placeholder="Enter the answer…"></textarea>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="faqActive" checked>
+                    <label for="faqActive">Active</label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" id="btnCancelFaq">Cancel</button>
+                <button class="btn btn-primary" id="btnSaveFaq">Save FAQ</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST CONTAINER -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- ======================= SCRIPTS ======================= -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        ; (function () {
+            'use strict';
+
+            // ── Supabase Init ──
+            const SUPABASE_URL = 'https://powyminyfeyqqwqgoyei.supabase.co';
+            const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBvd3ltaW55ZmV5cXF3cWdveWVpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwMDU0MDIsImV4cCI6MjA4NjU4MTQwMn0.VilEEpVtj9cFMPezR-Dm5yG9kjcpGCFX6RbKocFbIxA';
+
+            let db;
+            try {
+                db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            } catch (e) {
+                console.error('Supabase init failed:', e);
+            }
+
+            // ── Helpers ──
+            const $ = (sel) => document.querySelector(sel);
+            const $$ = (sel) => document.querySelectorAll(sel);
+
+            function toast(msg, type = 'success') {
+                const el = document.createElement('div');
+                el.className = `toast ${type}`;
+                el.innerHTML = `${type === 'success' ? '✅' : '⚠️'} ${msg}`;
+                $('#toastContainer').appendChild(el);
+                setTimeout(() => { el.style.animation = 'toastOut .3s ease forwards'; setTimeout(() => el.remove(), 300); }, 3500);
+            }
+
+            function escHtml(s) {
+                const d = document.createElement('div');
+                d.textContent = s;
+                return d.innerHTML;
+            }
+
+            function truncate(s, len = 80) {
+                if (!s) return '';
+                return s.length > len ? s.slice(0, len) + '…' : s;
+            }
+
+            function todayISO() {
+                const d = new Date();
+                return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+            }
+
+            function statusBadge(state) {
+                if (state === 'handover_pending') return '<span class="badge hot">🔥 Hot</span>';
+                if (state === 'active') return '<span class="badge warm">🌡️ Warm</span>';
+                if (state === 'complete') return '<span class="badge complete">✅ Done</span>';
+                return `<span class="badge inactive">${escHtml(state || '—')}</span>`;
+            }
+
+            function emptyRow(cols, message, icon = '📭') {
+                return `<tr><td colspan="${cols}"><div class="empty-state"><div class="icon">${icon}</div><p>${message}</p></div></td></tr>`;
+            }
+
+            function errorRow(cols, message) {
+                return `<tr><td colspan="${cols}"><div class="error-banner">⚠️ ${message}</div></td></tr>`;
+            }
+
+            // ── Connection Check ──
+            async function checkConnection() {
+                const dot = $('#connDot');
+                const label = $('#connLabel');
+                try {
+                    // Simple query to check connection
+                    const { error } = await db.from('services').select('id', { count: 'exact', head: true });
+                    if (error && error.code === '42P01') {
+                        // Table doesn't exist but connection works
+                        dot.className = 'conn-dot ok';
+                        label.textContent = 'Connected';
+                    } else if (error) {
+                        throw error;
+                    } else {
+                        dot.className = 'conn-dot ok';
+                        label.textContent = 'Connected';
+                    }
+                } catch (e) {
+                    dot.className = 'conn-dot err';
+                    label.textContent = 'Disconnected';
+                    console.error('Connection check failed:', e);
+                }
+            }
+
+            // ── Navigation ──
+            function initNav() {
+                $$('.nav button').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        $$('.nav button').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                        $$('.page').forEach(p => p.classList.remove('active'));
+                        const page = $(`#page-${btn.dataset.page}`);
+                        if (page) page.classList.add('active');
+                        // load data for the page
+                        const p = btn.dataset.page;
+                        if (p === 'dashboard') loadDashboard();
+                        else if (p === 'services') loadServices();
+                        else if (p === 'faqs') loadFaqs();
+                        else if (p === 'business') loadBusinessInfo();
+                    });
+                });
+            }
+
+            // ══════════════════════════════════════
+            //  DASHBOARD
+            // ══════════════════════════════════════
+            async function loadDashboard() {
+                const today = todayISO();
+
+                // Stats
+                try {
+                    const { data: allToday, error: e1 } = await db
+                        .from('conversation_states')
+                        .select('*')
+                        .gte('updated_at', today + 'T00:00:00');
+
+                    if (e1) {
+                        if (e1.code === '42P01') {
+                            $('#statConvos').textContent = '—';
+                            $('#statHot').textContent = '—';
+                            $('#statWarm').textContent = '—';
+                            $('#statFollowups').textContent = '—';
+                            $('#leadsBody').innerHTML = errorRow(4, 'Table <b>conversation_states</b> not found — run SQL setup.');
+                            return;
+                        }
+                        throw e1;
+                    }
+
+                    const convos = allToday ? allToday.length : 0;
+                    const hot = allToday ? allToday.filter(r => r.current_state === 'handover_pending').length : 0;
+                    const warm = allToday ? allToday.filter(r => r.current_state === 'active').length : 0;
+
+                    // Followups — all time
+                    const { data: fups, error: e2 } = await db
+                        .from('conversation_states')
+                        .select('*')
+                        .gt('follow_up_count', 0)
+                        .neq('follow_up_status', 'complete');
+
+                    const followups = (!e2 && fups) ? fups.length : 0;
+
+                    $('#statConvos').textContent = convos;
+                    $('#statHot').textContent = hot;
+                    $('#statWarm').textContent = warm;
+                    $('#statFollowups').textContent = followups;
+
+                } catch (e) {
+                    console.error('Dashboard stats error:', e);
+                    $('#statConvos').textContent = '!';
+                    $('#statHot').textContent = '!';
+                    $('#statWarm').textContent = '!';
+                    $('#statFollowups').textContent = '!';
+                }
+
+                // Recent leads
+                try {
+                    const { data: leads, error } = await db
+                        .from('conversation_states')
+                        .select('conversation_id, contact_id, current_state, service_type, updated_at')
+                        .order('updated_at', { ascending: false })
+                        .limit(10);
+
+                    if (error) {
+                        if (error.code === '42P01') {
+                            $('#leadsBody').innerHTML = errorRow(4, 'Table <b>conversation_states</b> not found — run SQL setup.');
+                            return;
+                        }
+                        throw error;
+                    }
+
+                    if (!leads || leads.length === 0) {
+                        $('#leadsBody').innerHTML = emptyRow(4, 'No leads yet. Conversations will appear here.', '📊');
+                        return;
+                    }
+
+                    // Get customer names
+                    const contactIds = [...new Set(leads.map(l => l.contact_id).filter(Boolean))];
+                    let customerMap = {};
+                    if (contactIds.length > 0) {
+                        try {
+                            const { data: customers } = await db
+                                .from('customers')
+                                .select('contact_id, name, phone_number')
+                                .in('contact_id', contactIds);
+                            if (customers) {
+                                customers.forEach(c => { customerMap[c.contact_id] = c; });
+                            }
+                        } catch (ce) {
+                            console.warn('Could not fetch customers:', ce);
+                        }
+                    }
+
+                    $('#leadsBody').innerHTML = leads.map(l => {
+                        const cust = customerMap[l.contact_id] || {};
+                        return `<tr>
+                        <td>${escHtml(cust.name || l.contact_id || '—')}</td>
+                        <td>${escHtml(cust.phone_number || '—')}</td>
+                        <td>${escHtml(l.service_type || '—')}</td>
+                        <td>${statusBadge(l.current_state)}</td>
+                    </tr>`;
+                    }).join('');
+
+                } catch (e) {
+                    console.error('Leads error:', e);
+                    $('#leadsBody').innerHTML = errorRow(4, 'Failed to load leads. Check console for details.');
+                }
+            }
+
+            // ══════════════════════════════════════
+            //  SERVICES
+            // ══════════════════════════════════════
+            async function loadServices() {
+                $('#servicesBody').innerHTML = `<tr class="loading-row"><td colspan="6"><span class="spinner"></span> Loading…</td></tr>`;
+                try {
+                    const { data, error } = await db.from('services').select('*').order('id');
+                    if (error) {
+                        if (error.code === '42P01') {
+                            $('#servicesBody').innerHTML = errorRow(6, 'Table <b>services</b> not found — run SQL setup.');
+                            return;
+                        }
+                        throw error;
+                    }
+                    if (!data || data.length === 0) {
+                        $('#servicesBody').innerHTML = emptyRow(6, 'No services added yet. Click "Add Service" to get started.', '🔧');
+                        return;
+                    }
+                    $('#servicesBody').innerHTML = data.map(s => `<tr>
+                    <td><strong>${escHtml(s.name)}</strong></td>
+                    <td>£${s.prebooked != null ? s.prebooked : 0}</td>
+                    <td>£${s.sameday != null ? s.sameday : 0}</td>
+                    <td>£${s.weekend != null ? s.weekend : 0}</td>
+                    <td>${s.active ? '<span class="badge active-badge">✅ Active</span>' : '<span class="badge inactive">❌ Inactive</span>'}</td>
+                    <td>
+                        <button class="btn btn-ghost btn-sm btn-edit-svc" data-id="${s.id}" title="Edit">✏️</button>
+                        <button class="btn btn-danger btn-sm btn-del-svc" data-id="${s.id}" title="Delete">🗑️</button>
+                    </td>
+                </tr>`).join('');
+
+                    // Attach edit/delete handlers
+                    $$('.btn-edit-svc').forEach(b => b.addEventListener('click', () => editService(parseInt(b.dataset.id))));
+                    $$('.btn-del-svc').forEach(b => b.addEventListener('click', () => deleteService(parseInt(b.dataset.id))));
+
+                } catch (e) {
+                    console.error('Load services error:', e);
+                    $('#servicesBody').innerHTML = errorRow(6, 'Failed to load services.');
+                }
+            }
+
+            function openServiceModal(svc = null) {
+                $('#serviceModalTitle').textContent = svc ? 'Edit Service' : 'Add Service';
+                $('#serviceId').value = svc ? svc.id : '';
+                $('#serviceName').value = svc ? svc.name : '';
+                $('#servicePrebooked').value = svc ? svc.prebooked : '';
+                $('#serviceSameday').value = svc ? svc.sameday : '';
+                $('#serviceWeekend').value = svc ? svc.weekend : '';
+                $('#serviceActive').checked = svc ? svc.active : true;
+                $('#serviceModal').classList.add('show');
+                $('#serviceName').focus();
+            }
+
+            function closeServiceModal() {
+                $('#serviceModal').classList.remove('show');
+            }
+
+            async function editService(id) {
+                try {
+                    const { data, error } = await db.from('services').select('*').eq('id', id).single();
+                    if (error) throw error;
+                    openServiceModal(data);
+                } catch (e) {
+                    console.error('Edit service error:', e);
+                    toast('Failed to load service details', 'error');
+                }
+            }
+
+            async function saveService() {
+                const name = $('#serviceName').value.trim();
+                if (!name) { toast('Service name is required', 'error'); return; }
+
+                const record = {
+                    name,
+                    prebooked: parseInt($('#servicePrebooked').value) || 0,
+                    sameday: parseInt($('#serviceSameday').value) || 0,
+                    weekend: parseInt($('#serviceWeekend').value) || 0,
+                    active: $('#serviceActive').checked,
+                };
+
+                const id = $('#serviceId').value;
+                try {
+                    if (id) {
+                        const { error } = await db.from('services').update(record).eq('id', parseInt(id));
+                        if (error) throw error;
+                        toast('Service updated!');
+                    } else {
+                        const { error } = await db.from('services').insert(record);
+                        if (error) throw error;
+                        toast('Service added!');
+                    }
+                    closeServiceModal();
+                    loadServices();
+                } catch (e) {
+                    console.error('Save service error:', e);
+                    toast('Failed to save service', 'error');
+                }
+            }
+
+            async function deleteService(id) {
+                if (!confirm('Are you sure you want to delete this service?')) return;
+                try {
+                    const { error } = await db.from('services').delete().eq('id', id);
+                    if (error) throw error;
+                    toast('Service deleted');
+                    loadServices();
+                } catch (e) {
+                    console.error('Delete service error:', e);
+                    toast('Failed to delete service', 'error');
+                }
+            }
+
+            // ══════════════════════════════════════
+            //  FAQs
+            // ══════════════════════════════════════
+            async function loadFaqs() {
+                $('#faqsBody').innerHTML = `<tr class="loading-row"><td colspan="4"><span class="spinner"></span> Loading…</td></tr>`;
+                try {
+                    const { data, error } = await db.from('faqs').select('*').order('id');
+                    if (error) {
+                        if (error.code === '42P01') {
+                            $('#faqsBody').innerHTML = errorRow(4, 'Table <b>faqs</b> not found — run SQL setup.');
+                            return;
+                        }
+                        throw error;
+                    }
+                    if (!data || data.length === 0) {
+                        $('#faqsBody').innerHTML = emptyRow(4, 'No FAQs added yet. Click "Add FAQ" to create one.', '❓');
+                        return;
+                    }
+                    $('#faqsBody').innerHTML = data.map(f => `<tr>
+                    <td><strong>${escHtml(f.q)}</strong></td>
+                    <td>${escHtml(truncate(f.a))}</td>
+                    <td>${f.active ? '<span class="badge active-badge">✅ Active</span>' : '<span class="badge inactive">❌ Inactive</span>'}</td>
+                    <td>
+                        <button class="btn btn-ghost btn-sm btn-edit-faq" data-id="${f.id}" title="Edit">✏️</button>
+                        <button class="btn btn-danger btn-sm btn-del-faq" data-id="${f.id}" title="Delete">🗑️</button>
+                    </td>
+                </tr>`).join('');
+
+                    $$('.btn-edit-faq').forEach(b => b.addEventListener('click', () => editFaq(parseInt(b.dataset.id))));
+                    $$('.btn-del-faq').forEach(b => b.addEventListener('click', () => deleteFaq(parseInt(b.dataset.id))));
+
+                } catch (e) {
+                    console.error('Load FAQs error:', e);
+                    $('#faqsBody').innerHTML = errorRow(4, 'Failed to load FAQs.');
+                }
+            }
+
+            function openFaqModal(faq = null) {
+                $('#faqModalTitle').textContent = faq ? 'Edit FAQ' : 'Add FAQ';
+                $('#faqId').value = faq ? faq.id : '';
+                $('#faqQuestion').value = faq ? faq.q : '';
+                $('#faqAnswer').value = faq ? faq.a : '';
+                $('#faqActive').checked = faq ? faq.active : true;
+                $('#faqModal').classList.add('show');
+                $('#faqQuestion').focus();
+            }
+
+            function closeFaqModal() {
+                $('#faqModal').classList.remove('show');
+            }
+
+            async function editFaq(id) {
+                try {
+                    const { data, error } = await db.from('faqs').select('*').eq('id', id).single();
+                    if (error) throw error;
+                    openFaqModal(data);
+                } catch (e) {
+                    console.error('Edit FAQ error:', e);
+                    toast('Failed to load FAQ details', 'error');
+                }
+            }
+
+            async function saveFaq() {
+                const q = $('#faqQuestion').value.trim();
+                const a = $('#faqAnswer').value.trim();
+                if (!q || !a) { toast('Both question and answer are required', 'error'); return; }
+
+                const record = { q, a, active: $('#faqActive').checked };
+                const id = $('#faqId').value;
+
+                try {
+                    if (id) {
+                        const { error } = await db.from('faqs').update(record).eq('id', parseInt(id));
+                        if (error) throw error;
+                        toast('FAQ updated!');
+                    } else {
+                        const { error } = await db.from('faqs').insert(record);
+                        if (error) throw error;
+                        toast('FAQ added!');
+                    }
+                    closeFaqModal();
+                    loadFaqs();
+                } catch (e) {
+                    console.error('Save FAQ error:', e);
+                    toast('Failed to save FAQ', 'error');
+                }
+            }
+
+            async function deleteFaq(id) {
+                if (!confirm('Are you sure you want to delete this FAQ?')) return;
+                try {
+                    const { error } = await db.from('faqs').delete().eq('id', id);
+                    if (error) throw error;
+                    toast('FAQ deleted');
+                    loadFaqs();
+                } catch (e) {
+                    console.error('Delete FAQ error:', e);
+                    toast('Failed to delete FAQ', 'error');
+                }
+            }
+
+            // ══════════════════════════════════════
+            //  BUSINESS INFO
+            // ══════════════════════════════════════
+            const BIZ_KEYS = [
+                'company_name', 'owner_name', 'phone', 'whatsapp',
+                'email', 'gas_safe_number', 'areas_covered', 'business_hours', 'google_review_link'
+            ];
+
+            async function loadBusinessInfo() {
+                try {
+                    const { data, error } = await db.from('business_info').select('key, value');
+                    if (error) {
+                        if (error.code === '42P01') {
+                            $('#bizError').innerHTML = '<div class="error-banner">⚠️ Table <b>business_info</b> not found — run SQL setup.</div>';
+                            return;
+                        }
+                        throw error;
+                    }
+                    $('#bizError').innerHTML = '';
+                    if (data) {
+                        data.forEach(row => {
+                            const input = $(`[data-key="${row.key}"]`);
+                            if (input) input.value = row.value || '';
+                        });
+                    }
+                } catch (e) {
+                    console.error('Load biz info error:', e);
+                    toast('Failed to load business info', 'error');
+                }
+            }
+
+            async function saveBusinessInfo() {
+                const records = BIZ_KEYS.map(key => {
+                    const input = $(`[data-key="${key}"]`);
+                    return { key, value: input ? input.value.trim() : '' };
+                });
+
+                try {
+                    for (const rec of records) {
+                        const { error } = await db.from('business_info')
+                            .upsert(rec, { onConflict: 'key' });
+                        if (error) {
+                            if (error.code === '42P01') {
+                                toast('Table business_info not found — run SQL setup.', 'error');
+                                return;
+                            }
+                            throw error;
+                        }
+                    }
+                    toast('Business info saved!');
+                } catch (e) {
+                    console.error('Save biz info error:', e);
+                    toast('Failed to save business info', 'error');
+                }
+            }
+
+            // ══════════════════════════════════════
+            //  EVENT LISTENERS
+            // ══════════════════════════════════════
+            function initListeners() {
+                // Dashboard refresh
+                $('#btnRefreshDash').addEventListener('click', loadDashboard);
+
+                // Services
+                $('#btnAddService').addEventListener('click', () => openServiceModal());
+                $('#btnCloseServiceModal').addEventListener('click', closeServiceModal);
+                $('#btnCancelService').addEventListener('click', closeServiceModal);
+                $('#btnSaveService').addEventListener('click', saveService);
+
+                // FAQs
+                $('#btnAddFaq').addEventListener('click', () => openFaqModal());
+                $('#btnCloseFaqModal').addEventListener('click', closeFaqModal);
+                $('#btnCancelFaq').addEventListener('click', closeFaqModal);
+                $('#btnSaveFaq').addEventListener('click', saveFaq);
+
+                // Business Info
+                $('#btnSaveBiz').addEventListener('click', saveBusinessInfo);
+
+                // Close modals on overlay click
+                $('#serviceModal').addEventListener('click', (e) => { if (e.target === e.currentTarget) closeServiceModal(); });
+                $('#faqModal').addEventListener('click', (e) => { if (e.target === e.currentTarget) closeFaqModal(); });
+
+                // Keyboard: Escape closes modals
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') {
+                        closeServiceModal();
+                        closeFaqModal();
+                    }
+                });
+            }
+
+            // ══════════════════════════════════════
+            //  REALTIME SUBSCRIPTIONS
+            // ══════════════════════════════════════
+            let realtimeChannel = null;
+
+            function flashStats() {
+                document.querySelectorAll('.stat-card').forEach(c => {
+                    c.classList.remove('flash');
+                    void c.offsetWidth; // force reflow
+                    c.classList.add('flash');
+                });
+            }
+
+            function getActivePage() {
+                const active = document.querySelector('.nav button.active');
+                return active ? active.dataset.page : 'dashboard';
+            }
+
+            function initRealtime() {
+                try {
+                    realtimeChannel = db.channel('admin-panel-realtime');
+
+                    // ── conversation_states changes → refresh dashboard ──
+                    realtimeChannel.on(
+                        'postgres_changes',
+                        { event: '*', schema: 'public', table: 'conversation_states' },
+                        (payload) => {
+                            console.log('[Realtime] conversation_states:', payload.eventType, payload);
+                            if (getActivePage() === 'dashboard') {
+                                loadDashboard();
+                                flashStats();
+                            }
+                        }
+                    );
+
+                    // ── customers changes → refresh dashboard leads ──
+                    realtimeChannel.on(
+                        'postgres_changes',
+                        { event: '*', schema: 'public', table: 'customers' },
+                        (payload) => {
+                            console.log('[Realtime] customers:', payload.eventType, payload);
+                            if (getActivePage() === 'dashboard') {
+                                loadDashboard();
+                            }
+                        }
+                    );
+
+                    // ── services changes → refresh services table ──
+                    realtimeChannel.on(
+                        'postgres_changes',
+                        { event: '*', schema: 'public', table: 'services' },
+                        (payload) => {
+                            console.log('[Realtime] services:', payload.eventType, payload);
+                            if (getActivePage() === 'services') {
+                                loadServices();
+                            }
+                        }
+                    );
+
+                    // ── faqs changes → refresh FAQs table ──
+                    realtimeChannel.on(
+                        'postgres_changes',
+                        { event: '*', schema: 'public', table: 'faqs' },
+                        (payload) => {
+                            console.log('[Realtime] faqs:', payload.eventType, payload);
+                            if (getActivePage() === 'faqs') {
+                                loadFaqs();
+                            }
+                        }
+                    );
+
+                    // ── business_info changes → refresh form ──
+                    realtimeChannel.on(
+                        'postgres_changes',
+                        { event: '*', schema: 'public', table: 'business_info' },
+                        (payload) => {
+                            console.log('[Realtime] business_info:', payload.eventType, payload);
+                            if (getActivePage() === 'business') {
+                                loadBusinessInfo();
+                            }
+                        }
+                    );
+
+                    // Subscribe and track status
+                    realtimeChannel.subscribe((status) => {
+                        console.log('[Realtime] channel status:', status);
+                        const badge = $('#liveBadge');
+                        if (status === 'SUBSCRIBED') {
+                            badge.classList.add('on');
+                            console.log('[Realtime] ✅ Live subscriptions active for all tables');
+                        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+                            badge.classList.remove('on');
+                            console.warn('[Realtime] ⚠️ Channel error or timeout:', status);
+                        }
+                    });
+
+                } catch (e) {
+                    console.error('Realtime init error:', e);
+                }
+            }
+
+            // ══════════════════════════════════════
+            //  INIT
+            // ══════════════════════════════════════
+            function init() {
+                if (!db) {
+                    toast('Supabase failed to initialize. Check console.', 'error');
+                    return;
+                }
+                initNav();
+                initListeners();
+                checkConnection();
+                loadDashboard();
+                initRealtime();
+            }
+
+            // Wait for DOM
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', init);
+            } else {
+                init();
+            }
+
+        })();
+    </script>
+</body>
+
+</html>
